@@ -6,14 +6,13 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      //squares: Array(10).fill(Array(10).fill(null))
     };
   }
   render() {
     return (
       <div className="App">
         <div>
-        Conways Game of Life
+        Conway's Game of Life
         </div>
         <Board/>
       </div>
