@@ -6,12 +6,28 @@ var cloneDeep = require('lodash.clonedeep');
 
 
 function Square(props) {
-  const whiteBg = {
-    backgroundColor: props.bgColor
-  };
-  const blackBg = {
-    backgroundColor: props.fgColor
-  };
+  //TODO: Refactor given new styles
+  let whiteBg;
+  let blackBg;
+  if (props.gridVisible) {
+    whiteBg = {
+      backgroundColor: props.bgColor,
+      border: '1px solid #999'
+    };
+    blackBg = {
+      backgroundColor: props.fgColor,
+      border: '1px solid #999'
+    };
+  } else {
+    whiteBg = {
+      backgroundColor: props.bgColor,
+      border: '0px solid #999'
+    };
+    blackBg = {
+      backgroundColor: props.fgColor,
+      border: '0px solid #999'
+    };
+  }
   var style;
   if (props.value === true) {
     style = blackBg;
@@ -55,7 +71,8 @@ class Board extends React.Component {
       nextAction: 'Play',
       nextActionIcon: <FaPlay/>,
       foregroundColor: '#000000',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      gridVisible: true
     };
     this.handleSpeedChange = this.handleSpeedChange.bind(this);
     this.handlePercentRandomChange = this.handlePercentRandomChange.bind(this);
@@ -72,6 +89,7 @@ class Board extends React.Component {
         key={i + ", " + j}
         bgColor={this.state.backgroundColor}
         fgColor={this.state.foregroundColor}
+        gridVisible={this.state.gridVisible}
       />
     );
   }
@@ -107,7 +125,15 @@ class Board extends React.Component {
   }
 
   toggleGrid = (event) => {
-    console.log("toggling grid (but not really)...");
+    if (this.state.gridVisible) {
+      this.setState({
+        gridVisible: false
+      });
+    } else {
+      this.setState({
+        gridVisible: true
+      });
+    }
   }
 
   hasNeighborAt = (i, j) => {
@@ -160,7 +186,6 @@ class Board extends React.Component {
 
   clearSquares = () => {
     //TODO: refactor to use something more efficient like Arrays.fill
-    console.log("Clearing squares...");
     const newSquares = this.state.squares.slice();
     for (var i = 0; i < SIZE; i++) {
       for (var j = 0; j < SIZE; j++) {
@@ -174,9 +199,7 @@ class Board extends React.Component {
   }
 
   makeGliderGun = () => {
-    console.log("attempting to make a glider gun...");
     this.clearSquares();
-    console.log("For now making a simple cross");
     const newSquares = this.state.squares.slice();
     //Source/credit: https://en.wikipedia.org/wiki/Gun
     //_(cellular_automaton)#/media/File:Game_of_life_glider_gun.svg
@@ -294,6 +317,7 @@ class Board extends React.Component {
       var col = <div className="board-row">{squares}</div>;
       rows.push(col);
     }
+    //TODO - get rid of these. Must be a way to refactor out
     const align = {
       textAlign: 'right'
     };

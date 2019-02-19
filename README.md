@@ -10,11 +10,11 @@ Welcome! This is a small/quick version of [Conway's Game of Life](https://en.wik
 * Ability to control the percent of cells turned on by randomization (roughly)
 * Preset patterns (only Glider Gun so far)
 * Better UX (buttons disabled when not appropriate, etc)
+* Toggle the grid & choose colors
 
 ### Coming Soon (Possibly)
 
 * Ability to determine size and wrapping behavior
-* Toggle the grid & other cosmetic features
 
 ### Create React App
 

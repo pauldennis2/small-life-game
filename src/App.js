@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import Board from "./components/Board"
+import Board from "./Board"
 
 class App extends Component {
   constructor(props) {
@@ -12,7 +12,9 @@ class App extends Component {
     return (
       <div className="App">
         <div>
-        Conway's Game of Life
+        <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">
+          Conway's Game of Life
+        </a>
         </div>
         <Board/>
       </div>
