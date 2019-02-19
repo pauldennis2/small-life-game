@@ -48,9 +48,11 @@ class Board extends React.Component {
     this.state = {
       squares: array,
       interval: null,
-      ticksPerSecond: 1
+      ticksPerSecond: 1,
+      percentToRandomize: 5
     };
     this.handleSpeedChange = this.handleSpeedChange.bind(this);
+    this.handlePercentRandomChange = this.handlePercentRandomChange.bind(this);
     console.log(this.state.squares);
   }
 
@@ -80,7 +82,10 @@ class Board extends React.Component {
 
   handleSpeedChange = (event) => {
     this.setState({ticksPerSecond: event.target.value});
-    console.log(this.state.ticksPerSecond);
+  }
+
+  handlePercentRandomChange = (event) => {
+    this.setState({percentToRandomize: event.target.value});
   }
 
   hasNeighborAt = (i, j) => {
@@ -131,12 +136,91 @@ class Board extends React.Component {
     });
   }
 
+  clearSquares = () => {
+    //TODO: refactor to use something more efficient like Arrays.fill
+    console.log("Clearing squares...");
+    const newSquares = this.state.squares.slice();
+    for (var i = 0; i < SIZE; i++) {
+      for (var j = 0; j < SIZE; j++) {
+        newSquares[i][j] = false;
+      }
+    }
+
+    this.setState({
+      squares: newSquares
+    });
+  }
+
+  makeGliderGun = () => {
+    console.log("attempting to make a glider gun...");
+    this.clearSquares();
+    console.log("For now making a simple cross");
+    const newSquares = this.state.squares.slice();
+    //Source/credit: https://en.wikipedia.org/wiki/Gun
+    //_(cellular_automaton)#/media/File:Game_of_life_glider_gun.svg
+    //Leftmost square
+    newSquares[5][1] = true;
+    newSquares[5][2] = true;
+    newSquares[6][1] = true;
+    newSquares[6][2] = true;
+
+    //Left bouncer
+    newSquares[5][11] = true;
+    newSquares[6][11] = true;
+    newSquares[7][11] = true;
+
+    newSquares[8][12] = true;
+    newSquares[9][13] = true;
+    newSquares[9][14] = true;
+
+    newSquares[4][12] = true;
+    newSquares[3][13] = true;
+    newSquares[3][14] = true;
+
+    newSquares[6][15] = true;
+
+    newSquares[4][16] = true;
+    newSquares[5][17] = true;
+    newSquares[6][17] = true;
+    newSquares[6][18] = true;
+    newSquares[7][17] = true;
+    newSquares[8][16] = true;
+
+    //Right bouncer
+
+    newSquares[3][21] = true;
+    newSquares[4][21] = true;
+    newSquares[5][21] = true;
+    newSquares[3][22] = true;
+    newSquares[4][22] = true;
+    newSquares[5][22] = true;
+
+    newSquares[6][23] = true;
+    newSquares[2][23] = true;
+
+    newSquares[1][25] = true;
+    newSquares[2][25] = true;
+    newSquares[6][25] = true;
+    newSquares[7][25] = true;
+
+    //Rightmost square
+    newSquares[3][35] = true;
+    newSquares[4][35] = true;
+    newSquares[3][36] = true;
+    newSquares[4][36] = true;
+
+
+    this.setState({
+      squares: newSquares
+    });
+  }
+
   randomize = () => {
     //Can use slice here instead of cloneDeep because each square is independent
     const newSquares = this.state.squares.slice();
     for (var i = 0; i < SIZE; i++) {
       for (var j = 0; j < SIZE; j++) {
-        newSquares[i][j] = Math.random() < 0.5;
+        newSquares[i][j] = Math.random() < (this.state.percentToRandomize / 10);
       }
     }
 
@@ -179,12 +263,15 @@ class Board extends React.Component {
       var col = <div className="board-row">{squares}</div>;
       rows.push(col);
     }
+    const align = {
+      textAlign: 'right'
+    };
     return (
       <div>
         <div>
           {rows}
         </div>
-        <div>
+        <div class="speedDiv">
           Game Speed/Flow
           <br/>
           <button onClick={this.doTick}>
@@ -202,9 +289,30 @@ class Board extends React.Component {
           onChange={this.handleSpeedChange} />
         </div>
         <hr/>
-        <button onClick={this.randomize}>
-        Randomize
-        </button>
+        <div class="randomizeDiv">
+          <button onClick={this.randomize}>
+          Randomize Cells
+          </button>
+          Percent of Cells Starting Alive:
+          <input type="number"
+          value={this.state.percentToRandomize}
+          onChange={this.handlePercentRandomChange}
+          style={align}/>
+          0%
+        </div>
+        <hr/>
+        <div class="presetsDiv">
+          Presets:
+          <button onClick={this.makeGliderGun}>
+          Glider Gun
+          </button>
+        </div>
+        <hr/>
+        <div class="cosmeticsDiv">
+          <button onClick={this.removeGrid}>
+          Remove Grid
+          </button>
+        </div>
       </div>
     );
   }
