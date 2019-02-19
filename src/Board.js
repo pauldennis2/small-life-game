@@ -178,6 +178,11 @@ class Board extends React.Component {
            this.countLiveNeighbors(i, j, origSquares));
       }
     }
+    /*
+    //Ugly but programatically easier than looping through everything
+    if (JSON.stringify(newSquares) === JSON.stringify(origSquares)) {
+      console.log("Status unchanged.");
+    }*/
 
     this.setState({
       squares: newSquares
@@ -361,6 +366,9 @@ class Board extends React.Component {
           Presets:
           <button onClick={this.makeGliderGun}>
           Glider Gun
+          </button>
+          <button onClick={this.clearSquares}>
+          Clear
           </button>
         </div>
         <hr/>
