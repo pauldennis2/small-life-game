@@ -2,57 +2,49 @@ import React from "react"
 import update from 'immutability-helper';
 import { FaPlay } from 'react-icons/fa';
 import { FaPause } from 'react-icons/fa';
+import './App.css';
 var cloneDeep = require('lodash.clonedeep');
 
+const SIZE = 50;
 
 function Square(props) {
-  //TODO: Refactor given new styles
-  let whiteBg;
-  let blackBg;
-  if (props.gridVisible) {
-    whiteBg = {
-      backgroundColor: props.bgColor,
-      border: '1px solid #999'
-    };
-    blackBg = {
-      backgroundColor: props.fgColor,
-      border: '1px solid #999'
-    };
-  } else {
-    whiteBg = {
-      backgroundColor: props.bgColor,
-      border: '0px solid #999'
-    };
-    blackBg = {
-      backgroundColor: props.fgColor,
-      border: '0px solid #999'
-    };
-  }
-  var style;
+  const style = {
+    border: props.gridStyle
+  };
   if (props.value === true) {
-    style = blackBg;
+    style.backgroundColor = props.aliveColor;
   } else {
-    style = whiteBg;
+    style.backgroundColor = props.deadColor;
   }
 
   return (
     <button className="square" onClick={props.onClick} style={style}/>
   );
-
 }
 
-const SIZE = 50;
-
+//Tells us whether a given index is safe to check
 function indexIsSafe (i, j) {
   return i >= 0 && j >= 0 && i <= (SIZE - 1) && j <= (SIZE - 1);
 }
 
+function arraysAreTheSame (origSquares, newSquares) {
+  for (var i = 0; i < SIZE; i++) {
+    for (var j = 0; j < SIZE; j++) {
+      if (newSquares[i][j] !== origSquares[i][j]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+//Determines whether a cell lives or dies based on number of living neighbors
 function evaluateCell (isAlive, livingNeighbors) {
- if (isAlive) {
-   return (livingNeighbors === 2 || livingNeighbors === 3);
- } else {
-   return livingNeighbors === 3;
- }
+  if (isAlive) {
+    return (livingNeighbors === 2 || livingNeighbors === 3);
+  } else {
+    return livingNeighbors === 3;
+  }
 }
 
 class Board extends React.Component {
@@ -70,26 +62,24 @@ class Board extends React.Component {
       percentToRandomize: 5,
       nextAction: 'Play',
       nextActionIcon: <FaPlay/>,
-      foregroundColor: '#000000',
-      backgroundColor: '#ffffff',
+      aliveColor: '#000000',
+      deadColor: '#ffffff',
       gridVisible: true
     };
     this.handleSpeedChange = this.handleSpeedChange.bind(this);
     this.handlePercentRandomChange = this.handlePercentRandomChange.bind(this);
-    this.handleForegroundColorChange = this.handleForegroundColorChange.bind(this);
-    this.handleBackgroundColorChange = this.handleBackgroundColorChange.bind(this);
+    this.handleAliveColorChange = this.handleAliveColorChange.bind(this);
+    this.handleDeadColorChange = this.handleDeadColorChange.bind(this);
   }
 
   renderSquare(i, j) {
-    //console.log(i + ", " + j + " = " + this.state.squares[i][j]);
     return (
       <Square
         value={this.state.squares[i][j]}
         onClick={() => this.handleSquareClick(i, j)}
-        key={i + ", " + j}
-        bgColor={this.state.backgroundColor}
-        fgColor={this.state.foregroundColor}
-        gridVisible={this.state.gridVisible}
+        deadColor={this.state.deadColor}
+        aliveColor={this.state.aliveColor}
+        gridStyle={this.state.gridVisible ? '1px solid #999' : '0px solid #999'}
       />
     );
   }
@@ -104,7 +94,8 @@ class Board extends React.Component {
     }
 
     this.setState({
-      squares: squares
+      squares: squares,
+      noChange: false
     });
   }
 
@@ -116,12 +107,12 @@ class Board extends React.Component {
     this.setState({percentToRandomize: event.target.value});
   }
 
-  handleForegroundColorChange = (event) => {
-    this.setState({foregroundColor: event.target.value});
+  handleAliveColorChange = (event) => {
+    this.setState({aliveColor: event.target.value});
   }
 
-  handleBackgroundColorChange = (event) => {
-    this.setState({backgroundColor: event.target.value});
+  handleDeadColorChange = (event) => {
+    this.setState({deadColor: event.target.value});
   }
 
   toggleGrid = (event) => {
@@ -137,9 +128,8 @@ class Board extends React.Component {
   }
 
   hasNeighborAt = (i, j) => {
-    const board = this.state.squares.slice();
     if (indexIsSafe(i, j)) {
-      if (board[i][j]) {
+      if (this.state.squares[i][j]) {
         return 1;
       }
     }
@@ -170,6 +160,18 @@ class Board extends React.Component {
   //On each tick we have to iterate over each cell and decide
   //if it lives or dies based on the game rules.
   doTick = () => {
+
+    /*
+    This optimization is really just for practice. It DOES allow the non-ticks
+    to happen a lot faster... but this doesn't really do anything for "actual"
+    performance. i.e. when nothing's going on, optimization is meh.
+
+    TODO: Add optimization to determine when board is in a cycle
+    */
+    if (this.state.noChange) {
+      console.log("Board is in static state. !Skipping tick logic.");
+      return;
+    }
     const newSquares = cloneDeep(this.state.squares); //Copy for new data
     const origSquares = cloneDeep(this.state.squares); //Keep a clean copy
     for (var i = 0; i < SIZE; i++) {
@@ -178,11 +180,12 @@ class Board extends React.Component {
            this.countLiveNeighbors(i, j, origSquares));
       }
     }
-    /*
-    //Ugly but programatically easier than looping through everything
-    if (JSON.stringify(newSquares) === JSON.stringify(origSquares)) {
-      console.log("Status unchanged.");
-    }*/
+
+    if (arraysAreTheSame(origSquares, newSquares)) {
+      this.setState({
+        noChange: true
+      });
+    }
 
     this.setState({
       squares: newSquares
@@ -199,7 +202,8 @@ class Board extends React.Component {
     }
 
     this.setState({
-      squares: newSquares
+      squares: newSquares,
+      noChange: false
     });
   }
 
@@ -261,7 +265,8 @@ class Board extends React.Component {
 
 
     this.setState({
-      squares: newSquares
+      squares: newSquares,
+      noChange: false
     });
   }
 
@@ -275,7 +280,8 @@ class Board extends React.Component {
     }
 
     this.setState({
-      squares: newSquares
+      squares: newSquares,
+      noChange: false
     });
   }
 
@@ -311,36 +317,29 @@ class Board extends React.Component {
   }
 
   render () {
-    var rows = [];
+    var board = [];
     //Create a two-dimensional array of Squares of size SIZE
     for (var i = 0; i < SIZE; i++) {
-
-      var squares = [];
+      var row = [];
       for (var j = 0; j < SIZE; j++) {
-        squares.push(this.renderSquare(i, j));
+        row.push(this.renderSquare(i, j));
       }
-      var col = <div className="board-row">{squares}</div>;
-      rows.push(col);
+      var rowDiv = <div className="board-row">{row}</div>;
+      board.push(rowDiv);
     }
-    //TODO - get rid of these. Must be a way to refactor out
-    const align = {
-      textAlign: 'right'
-    };
-    const toggleStyle = {
-      width: '80px'
-    };
+
     return (
       <div>
         <div>
-          {rows}
+          {board}
         </div>
         <div className="speedDiv">
-          Game Speed/Flow
+          Game Speed/Flow {this.state.noChange ? 'STUCK' : ''}
           <br/>
           <button onClick={this.doTick}>
           Advance
           </button>
-          <button onClick={this.togglePlay} style={toggleStyle}>
+          <button onClick={this.togglePlay} className="toggleButton">
             {this.state.nextActionIcon} {this.state.nextAction}
           </button>
           Ticks Per Second:
@@ -358,7 +357,7 @@ class Board extends React.Component {
           <input type="number"
           value={this.state.percentToRandomize}
           onChange={this.handlePercentRandomChange}
-          style={align}/>
+          className="right-align"/>
           0%
         </div>
         <hr/>
@@ -378,12 +377,12 @@ class Board extends React.Component {
           </button>
           <br/>
           <input type="color" defaultValue="#ffffff"
-            onChange={this.handleBackgroundColorChange}>
+            onChange={this.handleDeadColorChange}>
           </input>
           Dead Cell Color (Background)
           <br/>
           <input type="color" defaultValue="#000000"
-            onChange={this.handleForegroundColorChange}>
+            onChange={this.handleAliveColorChange}>
           </input>
           Alive Cell Color
         </div>

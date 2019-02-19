@@ -41,3 +41,11 @@
   padding: 5px;
   background: white;
 }
+
+.right-align {
+  text-align: right;
+}
+
+.toggleButton {
+  width: 80px;
+}
