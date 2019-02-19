@@ -1,14 +1,16 @@
 import React from "react"
 import update from 'immutability-helper';
+import { FaPlay } from 'react-icons/fa';
+import { FaPause } from 'react-icons/fa';
 var cloneDeep = require('lodash.clonedeep');
 
 
 function Square(props) {
   const whiteBg = {
-    backgroundColor: 'white'
+    backgroundColor: props.bgColor
   };
   const blackBg = {
-    backgroundColor: 'black'
+    backgroundColor: props.fgColor
   };
   var style;
   if (props.value === true) {
@@ -49,11 +51,16 @@ class Board extends React.Component {
       squares: array,
       interval: null,
       ticksPerSecond: 1,
-      percentToRandomize: 5
+      percentToRandomize: 5,
+      nextAction: 'Play',
+      nextActionIcon: <FaPlay/>,
+      foregroundColor: '#000000',
+      backgroundColor: '#ffffff'
     };
     this.handleSpeedChange = this.handleSpeedChange.bind(this);
     this.handlePercentRandomChange = this.handlePercentRandomChange.bind(this);
-    console.log(this.state.squares);
+    this.handleForegroundColorChange = this.handleForegroundColorChange.bind(this);
+    this.handleBackgroundColorChange = this.handleBackgroundColorChange.bind(this);
   }
 
   renderSquare(i, j) {
@@ -62,6 +69,9 @@ class Board extends React.Component {
       <Square
         value={this.state.squares[i][j]}
         onClick={() => this.handleSquareClick(i, j)}
+        key={i + ", " + j}
+        bgColor={this.state.backgroundColor}
+        fgColor={this.state.foregroundColor}
       />
     );
   }
@@ -86,6 +96,18 @@ class Board extends React.Component {
 
   handlePercentRandomChange = (event) => {
     this.setState({percentToRandomize: event.target.value});
+  }
+
+  handleForegroundColorChange = (event) => {
+    this.setState({foregroundColor: event.target.value});
+  }
+
+  handleBackgroundColorChange = (event) => {
+    this.setState({backgroundColor: event.target.value});
+  }
+
+  toggleGrid = (event) => {
+    console.log("toggling grid (but not really)...");
   }
 
   hasNeighborAt = (i, j) => {
@@ -229,26 +251,35 @@ class Board extends React.Component {
     });
   }
 
-  startTicks = () => {
-    console.log("in startTicks");
-    if (this.state.interval === null) {
-      console.log("Starting interval");
-      var rate = 1000 / this.state.ticksPerSecond;
-      this.setState({
-        interval: setInterval(this.doTick, rate)
-      })
+  togglePlay = () => {
+    if (this.state.nextAction === 'Play') {
+      this.startTicks();
+    } else if (this.state.nextAction === 'Pause') {
+      this.stopTicks();
+    } else {
+      alert("Error: this.state.nextAction is unexpected value: "
+      + this.state.nextAction);
     }
   }
 
+  startTicks = () => {
+    var rate = 1000 / this.state.ticksPerSecond;
+    this.setState({
+      interval: setInterval(this.doTick, rate),
+      nextAction: 'Pause',
+      nextActionIcon: <FaPause/>
+    });
+    this.refs.ticksPerSecond.disabled = true;
+  }
+
   stopTicks = () => {
-    console.log("in stopTicks");
-    if (this.state.interval !== null) {
-      console.log("stopping interval");
-      clearInterval(this.state.interval);
-      this.setState({
-        interval: null
-      })
-    }
+    clearInterval(this.state.interval);
+    this.setState({
+      interval: null,
+      nextAction: 'Play',
+      nextActionIcon: <FaPlay/>
+    });
+    this.refs.ticksPerSecond.disabled = false;
   }
 
   render () {
@@ -266,30 +297,31 @@ class Board extends React.Component {
     const align = {
       textAlign: 'right'
     };
+    const toggleStyle = {
+      width: '80px'
+    };
     return (
       <div>
         <div>
           {rows}
         </div>
-        <div class="speedDiv">
+        <div className="speedDiv">
           Game Speed/Flow
           <br/>
           <button onClick={this.doTick}>
           Advance
           </button>
-          <button onClick={this.startTicks}>
-          Play
-          </button>
-          <button onClick={this.stopTicks}>
-          Pause
+          <button onClick={this.togglePlay} style={toggleStyle}>
+            {this.state.nextActionIcon} {this.state.nextAction}
           </button>
           Ticks Per Second:
           <input type="number"
           value={this.state.ticksPerSecond}
-          onChange={this.handleSpeedChange} />
+          onChange={this.handleSpeedChange}
+          ref="ticksPerSecond"/>
         </div>
         <hr/>
-        <div class="randomizeDiv">
+        <div className="randomizeDiv">
           <button onClick={this.randomize}>
           Randomize Cells
           </button>
@@ -301,17 +333,27 @@ class Board extends React.Component {
           0%
         </div>
         <hr/>
-        <div class="presetsDiv">
+        <div className="presetsDiv">
           Presets:
           <button onClick={this.makeGliderGun}>
           Glider Gun
           </button>
         </div>
         <hr/>
-        <div class="cosmeticsDiv">
-          <button onClick={this.removeGrid}>
-          Remove Grid
+        <div className="cosmeticsDiv">
+          <button onClick={this.toggleGrid}>
+          Toggle Grid
           </button>
+          <br/>
+          <input type="color" defaultValue="#ffffff"
+            onChange={this.handleBackgroundColorChange}>
+          </input>
+          Dead Cell Color (Background)
+          <br/>
+          <input type="color" defaultValue="#000000"
+            onChange={this.handleForegroundColorChange}>
+          </input>
+          Alive Cell Color
         </div>
       </div>
     );
