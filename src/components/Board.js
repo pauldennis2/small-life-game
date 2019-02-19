@@ -46,8 +46,11 @@ class Board extends React.Component {
       array[i] = new Array(SIZE).fill(false);
     }
     this.state = {
-      squares: array
+      squares: array,
+      interval: null,
+      ticksPerSecond: 1
     };
+    this.handleSpeedChange = this.handleSpeedChange.bind(this);
     console.log(this.state.squares);
   }
 
@@ -56,12 +59,12 @@ class Board extends React.Component {
     return (
       <Square
         value={this.state.squares[i][j]}
-        onClick={() => this.handleClick(i, j)}
+        onClick={() => this.handleSquareClick(i, j)}
       />
     );
   }
 
-  handleClick= (i, j) => {
+  handleSquareClick = (i, j) => {
     const squares = this.state.squares.slice();
 
     if (squares[i][j] === true) {
@@ -73,6 +76,11 @@ class Board extends React.Component {
     this.setState({
       squares: squares
     });
+  }
+
+  handleSpeedChange = (event) => {
+    this.setState({ticksPerSecond: event.target.value});
+    console.log(this.state.ticksPerSecond);
   }
 
   hasNeighborAt = (i, j) => {
@@ -113,7 +121,8 @@ class Board extends React.Component {
     const origSquares = cloneDeep(this.state.squares); //Keep a clean copy
     for (var i = 0; i < SIZE; i++) {
       for (var j = 0; j < SIZE; j++) {
-        newSquares[i][j] = evaluateCell(origSquares[i][j], this.countLiveNeighbors(i, j, origSquares));
+        newSquares[i][j] = evaluateCell(origSquares[i][j],
+           this.countLiveNeighbors(i, j, origSquares));
       }
     }
 
@@ -121,6 +130,43 @@ class Board extends React.Component {
       squares: newSquares
     });
   }
+
+  randomize = () => {
+    //Can use slice here instead of cloneDeep because each square is independent
+    const newSquares = this.state.squares.slice();
+    for (var i = 0; i < SIZE; i++) {
+      for (var j = 0; j < SIZE; j++) {
+        newSquares[i][j] = Math.random() < 0.5;
+      }
+    }
+
+    this.setState({
+      squares: newSquares
+    });
+  }
+
+  startTicks = () => {
+    console.log("in startTicks");
+    if (this.state.interval === null) {
+      console.log("Starting interval");
+      var rate = 1000 / this.state.ticksPerSecond;
+      this.setState({
+        interval: setInterval(this.doTick, rate)
+      })
+    }
+  }
+
+  stopTicks = () => {
+    console.log("in stopTicks");
+    if (this.state.interval !== null) {
+      console.log("stopping interval");
+      clearInterval(this.state.interval);
+      this.setState({
+        interval: null
+      })
+    }
+  }
+
   render () {
     var rows = [];
     //Create a two-dimensional array of Squares of size SIZE
@@ -138,8 +184,26 @@ class Board extends React.Component {
         <div>
           {rows}
         </div>
-        <button onClick={this.doTick}>
-        Advance
+        <div>
+          Game Speed/Flow
+          <br/>
+          <button onClick={this.doTick}>
+          Advance
+          </button>
+          <button onClick={this.startTicks}>
+          Play
+          </button>
+          <button onClick={this.stopTicks}>
+          Pause
+          </button>
+          Ticks Per Second:
+          <input type="number"
+          value={this.state.ticksPerSecond}
+          onChange={this.handleSpeedChange} />
+        </div>
+        <hr/>
+        <button onClick={this.randomize}>
+        Randomize
         </button>
       </div>
     );
