@@ -19,6 +19,9 @@ class Popup extends React.Component {
           Presets: currently only one preset configuration, the Gosper Glider
           Gun, is available. <br/>
           Lastly, there are a few cosmetic selections at the bottom. Enjoy!<br/>
+          See the code on&nbsp;
+          <a href="https://github.homedepot.com/Pxd8hr9/small-life-game">
+          Github</a> <br/>
           <button onClick={this.props.closePopup}>Close Help</button>
         </div>
       </div>

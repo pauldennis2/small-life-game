@@ -1,11 +1,10 @@
 import React from "react"
-import update from 'immutability-helper';
 import { FaPlay } from 'react-icons/fa';
 import { FaPause } from 'react-icons/fa';
 import './App.css';
 var cloneDeep = require('lodash.clonedeep');
 
-const SIZE = 50;
+var SIZE = 50;
 
 function Square(props) {
   const style = {
@@ -64,12 +63,14 @@ class Board extends React.Component {
       nextActionIcon: <FaPlay/>,
       aliveColor: '#000000',
       deadColor: '#ffffff',
-      gridVisible: true
+      gridVisible: true,
+      boardSize: 50
     };
     this.handleSpeedChange = this.handleSpeedChange.bind(this);
     this.handlePercentRandomChange = this.handlePercentRandomChange.bind(this);
     this.handleAliveColorChange = this.handleAliveColorChange.bind(this);
     this.handleDeadColorChange = this.handleDeadColorChange.bind(this);
+    this.handleSizeInputChange = this.handleSizeInputChange.bind(this);
   }
 
   renderSquare(i, j) {
@@ -115,6 +116,10 @@ class Board extends React.Component {
     this.setState({deadColor: event.target.value});
   }
 
+  handleSizeInputChange = (event) => {
+    this.setState({boardSize: event.target.value});
+  }
+
   toggleGrid = (event) => {
     if (this.state.gridVisible) {
       this.setState({
@@ -125,6 +130,11 @@ class Board extends React.Component {
         gridVisible: true
       });
     }
+  }
+
+  changeSize = () => {
+    console.log("Changing size?");
+    SIZE = this.state.boardSize;
   }
 
   hasNeighborAt = (i, j) => {
@@ -169,7 +179,7 @@ class Board extends React.Component {
     TODO: Add optimization to determine when board is in a cycle
     */
     if (this.state.noChange) {
-      console.log("Board is in static state. !Skipping tick logic.");
+      console.log("Board is in static state. Skipping tick logic.");
       return;
     }
     const newSquares = cloneDeep(this.state.squares); //Copy for new data
@@ -385,6 +395,19 @@ class Board extends React.Component {
             onChange={this.handleAliveColorChange}>
           </input>
           Alive Cell Color
+        </div>
+        <hr/>
+        <div className="sizeSelectorDiv">
+          Board Size
+          <form onSubmit={this.changeSize}>
+            <input
+              type="number"
+              value={this.state.boardSize}
+              onChange={this.handleSizeInputChange}
+              min="5"
+              max="80"/>
+            <input type="submit" value="Change"/>
+          </form>
         </div>
       </div>
     );
